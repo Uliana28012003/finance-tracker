@@ -1,0 +1,38 @@
+{
+  "name": "finance-tracker-frontend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "tailwind": "tailwindcss init -p",
+    "start": "react-scripts start",
+    "test": "react-scripts test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "autoprefixer": "^10.4.21",
+    "axios": "^1.8.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "postcss": "^8.5.3",
+    "react-dom": "^19.0.0",
+    "react-scripts": "^5.0.1",
+    "sqlite3": "^5.1.7",
+    "tailwindcss": "^3.4.17",
+    "web-vitals": "^4.2.4"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
