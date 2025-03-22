@@ -12,10 +12,12 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "sqlite3": "^5.1.7",
+    "jsonwebtoken": "^9.0.2",
     "react-scripts": "^5.0.1",
+    "sqlite3": "^5.1.7",
     "tailwindcss": "^3.4.17"
   }
 }

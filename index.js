@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(express.json());
@@ -15,7 +17,7 @@ const db = new sqlite3.Database("./database/finance.db", (err) => {
   }
 });
 
-// Создание таблицы, если она еще не существует
+// Создание таблицы транзакций, если она еще не существует
 db.run(`
   CREATE TABLE IF NOT EXISTS transactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,6 +27,37 @@ db.run(`
     date TEXT
   );
 `);
+
+// Создание таблицы пользователей, если она еще не существует
+db.run(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL
+  );
+`);
+
+// Регистрация пользователя
+app.post("/register", (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ message: "Все поля обязательны" });
+  }
+
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
+  db.run(
+    "INSERT INTO users (username, password) VALUES (?, ?)",
+    [username, hashedPassword],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ message: "Ошибка регистрации" });
+      }
+      res.status(201).json({ message: "Регистрация успешна!" });
+    }
+  );
+});
 
 // API для добавления транзакции
 app.post("/transaction", (req, res) => {
@@ -46,15 +79,6 @@ app.post("/transaction", (req, res) => {
     });
   });
 });
-
-// Главная страница
-app.get("/", (req, res) => {
-  res.send("Finance Tracker API работает!");
-});
-
-// Запуск сервера
-const PORT = 5000;
-app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
 
 // API для получения всех транзакций
 app.get("/transactions", (req, res) => {
@@ -113,3 +137,7 @@ app.put("/transaction/:id", (req, res) => {
     });
   });
 });
+
+// Запуск сервера
+const PORT = 5000;
+app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
