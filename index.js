@@ -19,29 +19,30 @@ const db = new sqlite3.Database("./database/finance.db", (err) => {
 db.run(`
   CREATE TABLE IF NOT EXISTS transactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    description TEXT,
+    category TEXT,
     amount REAL,
+    type TEXT CHECK(type IN ('income', 'expense')),
     date TEXT
   );
 `);
 
 // API для добавления транзакции
 app.post("/transaction", (req, res) => {
-  const { description, amount, date } = req.body;
+  const { category, amount, type, date } = req.body;
 
-  if (!description || !amount || !date) {
+  if (!category || !amount || !type || !date) {
     return res.status(400).json({ message: "Все поля обязательны" });
   }
 
-  const query = `INSERT INTO transactions (description, amount, date) VALUES (?, ?, ?)`;
+  const query = `INSERT INTO transactions (category, amount, type, date) VALUES (?, ?, ?, ?)`;
 
-  db.run(query, [description, amount, date], function (err) {
+  db.run(query, [category, amount, type, date], function (err) {
     if (err) {
       return res.status(500).json({ message: "Ошибка при добавлении транзакции", error: err });
     }
     res.status(201).json({
       message: "Транзакция успешно добавлена",
-      transaction: { id: this.lastID, description, amount, date },
+      transaction: { id: this.lastID, category, amount, type, date },
     });
   });
 });
@@ -54,3 +55,61 @@ app.get("/", (req, res) => {
 // Запуск сервера
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+
+// API для получения всех транзакций
+app.get("/transactions", (req, res) => {
+  const query = "SELECT * FROM transactions";
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ message: "Ошибка при получении транзакций", error: err });
+    }
+    res.status(200).json({ transactions: rows });
+  });
+});
+
+// API для удаления транзакции
+app.delete("/transaction/:id", (req, res) => {
+  const { id } = req.params;
+
+  const query = "DELETE FROM transactions WHERE id = ?";
+
+  db.run(query, [id], function (err) {
+    if (err) {
+      return res.status(500).json({ message: "Ошибка при удалении транзакции", error: err });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ message: "Транзакция не найдена" });
+    }
+
+    res.status(200).json({ message: `Транзакция с id ${id} удалена` });
+  });
+});
+
+// API для обновления транзакции
+app.put("/transaction/:id", (req, res) => {
+  const { id } = req.params;
+  const { category, amount, type, date } = req.body;
+
+  if (!category || !amount || !type || !date) {
+    return res.status(400).json({ message: "Все поля обязательны" });
+  }
+
+  const query = "UPDATE transactions SET category = ?, amount = ?, type = ?, date = ? WHERE id = ?";
+
+  db.run(query, [category, amount, type, date, id], function (err) {
+    if (err) {
+      return res.status(500).json({ message: "Ошибка при обновлении транзакции", error: err });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ message: "Транзакция не найдена" });
+    }
+
+    res.status(200).json({
+      message: `Транзакция с id ${id} обновлена`,
+      transaction: { id, category, amount, type, date },
+    });
+  });
+});

@@ -1,9 +1,11 @@
 {
-  "name": "finance-tracker",
+  "name": "finance-tracker-frontend",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "react-scripts start",
+    "test": "react-scripts test",
+    "tailwind": "npx tailwindcss init -p"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +14,8 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "react-scripts": "^5.0.1",
+    "tailwindcss": "^3.4.17"
   }
 }
