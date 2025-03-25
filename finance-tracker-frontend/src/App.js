@@ -7,7 +7,9 @@ function App() {
   const [transactions, setTransactions] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
-  const [loginError, setLoginError] = useState("");  // Для отображения ошибок входа
+  const [loginError, setLoginError] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   // Проверяем токен при загрузке приложения
   useEffect(() => {
@@ -22,21 +24,22 @@ function App() {
           setUser(response.data.user);
         })
         .catch(() => {
-          setIsAuthenticated(false);
-          setUser(null);
+          logout(); // Разлогиниваем, если токен невалиден
         });
     }
   }, []);
 
   // Функция входа
-  const login = (username, password) => {
-    setLoginError(""); // Сбрасываем ошибку перед новым запросом
+  const login = () => {
+    setLoginError("");
     axios
       .post("http://localhost:5000/login", { username, password })
       .then((response) => {
         localStorage.setItem("token", response.data.token);
         setIsAuthenticated(true);
         setUser(response.data.user);
+        setUsername("");
+        setPassword("");
       })
       .catch((error) => {
         setLoginError("Ошибка входа: Неверное имя пользователя или пароль");
@@ -49,6 +52,7 @@ function App() {
     localStorage.removeItem("token");
     setIsAuthenticated(false);
     setUser(null);
+    setTransactions([]);
   };
 
   // Загружаем список транзакций, если пользователь авторизован
@@ -63,6 +67,9 @@ function App() {
         })
         .catch((error) => {
           console.error("Ошибка при получении транзакций:", error);
+          if (error.response?.status === 401) {
+            logout(); // Автоматический выход при просроченном токене
+          }
         });
     }
   }, [isAuthenticated]);
@@ -70,13 +77,9 @@ function App() {
   // Добавление транзакции
   const handleAddTransaction = (newTransaction) => {
     axios
-      .post(
-        "http://localhost:5000/transactions", // Используем тот же маршрут для добавления транзакции
-        newTransaction,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      )
+      .post("http://localhost:5000/transactions", newTransaction, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      })
       .then((response) => {
         setTransactions((prevTransactions) => [...prevTransactions, response.data]);
       })
@@ -88,13 +91,11 @@ function App() {
   // Удаление транзакции
   const handleDeleteTransaction = (id) => {
     axios
-      .delete(`http://localhost:5000/transactions/${id}`, {  // Исправили путь на /transactions/:id
+      .delete(`http://localhost:5000/transactions/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
       .then(() => {
-        setTransactions((prevTransactions) =>
-          prevTransactions.filter((transaction) => transaction.id !== id)
-        );
+        setTransactions((prevTransactions) => prevTransactions.filter((transaction) => transaction.id !== id));
       })
       .catch((error) => {
         console.error("Ошибка при удалении транзакции:", error);
@@ -107,7 +108,7 @@ function App() {
 
       {isAuthenticated ? (
         <>
-          <p>Добро пожаловать, {user?.username}!</p>
+          <p>Добро пожаловать, {user?.username || "пользователь"}!</p>
           <button onClick={logout} className="bg-red-500 text-white px-4 py-2">
             Выйти
           </button>
@@ -115,14 +116,25 @@ function App() {
           <TransactionsList transactions={transactions} onDelete={handleDeleteTransaction} />
         </>
       ) : (
-        <div>
+        <div className="login-form">
           <h2>Войти в систему</h2>
-          {loginError && <p className="text-red-500">{loginError}</p>} {/* Отображение ошибки */}
-          <button
-            onClick={() => login("newuser", "123456")}
-            className="bg-blue-500 text-white px-4 py-2"
-          >
-            Войти (тестовый)
+          {loginError && <p className="text-red-500">{loginError}</p>}
+          <input
+            type="text"
+            placeholder="Имя пользователя"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="border p-2 mb-2"
+          />
+          <input
+            type="password"
+            placeholder="Пароль"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="border p-2 mb-2"
+          />
+          <button onClick={login} className="bg-blue-500 text-white px-4 py-2">
+            Войти
           </button>
         </div>
       )}

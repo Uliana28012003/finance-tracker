@@ -1,42 +1,56 @@
 import { useState } from "react";
-import { login } from "./auth";
 
-function Login() {
-  const [username, setUsername] = useState("");
+export default function Login() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+
     try {
-      await login(username, password);
-      window.location.reload(); // Перезагружаем страницу после входа
+      const response = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Ошибка входа");
+
+      localStorage.setItem("token", data.token);
+      window.location.href = "/dashboard";
     } catch (err) {
       setError(err.message);
     }
   };
 
   return (
-    <div>
-      <h2>Вход</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleLogin}>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h2 className="text-2xl font-bold mb-4">Вход в систему</h2>
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-80">
+        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
         <input
-          type="text"
-          placeholder="Логин"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-2 border rounded mb-2"
+          required
         />
         <input
           type="password"
           placeholder="Пароль"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 border rounded mb-4"
+          required
         />
-        <button type="submit">Войти</button>
+        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
+          Войти
+        </button>
       </form>
     </div>
   );
 }
-
-export default Login;
