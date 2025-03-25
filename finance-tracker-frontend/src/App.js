@@ -74,19 +74,26 @@ function App() {
     }
   }, [isAuthenticated]);
 
-  // Добавление транзакции
-  const handleAddTransaction = (newTransaction) => {
-    axios
-      .post("http://localhost:5000/transactions", newTransaction, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
-      .then((response) => {
-        setTransactions((prevTransactions) => [...prevTransactions, response.data]);
-      })
-      .catch((error) => {
-        console.error("Ошибка при добавлении транзакции:", error);
-      });
-  };
+
+// Добавление транзакции
+const handleAddTransaction = (newTransaction) => {
+  console.log("Данные для отправки на сервер:", newTransaction);  // Логируем перед отправкой
+
+  axios
+    .post("http://localhost:5000/transactions", newTransaction, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      "Content-Type": "application/json",
+    })
+    .then((response) => {
+      console.log("Транзакция добавлена:", response.data);  // Логируем успешный ответ сервера
+      setTransactions((prevTransactions) => [...prevTransactions, response.data.transaction]);
+    })
+    .catch((error) => {
+      console.error("Ошибка при добавлении транзакции:", error);  // Логируем ошибку
+    });
+};
+
+  
 
   // Удаление транзакции
   const handleDeleteTransaction = (id) => {

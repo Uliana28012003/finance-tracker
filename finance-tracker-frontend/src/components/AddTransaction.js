@@ -5,7 +5,8 @@ const AddTransaction = ({ onAdd }) => {
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("expense");
-  const [description, setDescription] = useState("");  // Добавляем состояние для описания
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState(""); // Добавляем состояние для даты
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -16,29 +17,27 @@ const AddTransaction = ({ onAdd }) => {
       category,
       amount: parseFloat(amount),
       type,
-      description,  // Обязательно передаем описание
-      date: new Date().toISOString(),  // Добавляем текущую дату
+      description,
+      date, // Используем введённую дату
     };
   
-    console.log('Отправляемая транзакция:', newTransaction); // Добавь это для отладки
+    console.log("Отправляемая транзакция:", newTransaction);
   
     axios
       .post("http://localhost:5000/transactions", newTransaction, {
-        headers: {
-          Authorization: `Bearer ${token}`,  // Добавляем токен в заголовок
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
         onAdd(response.data.transaction);
         setCategory("");
         setAmount("");
-        setDescription("");  // Очищаем поле описания
+        setDescription("");
+        setDate(""); // Очищаем поле даты
       })
       .catch((error) => {
         console.error("Ошибка при добавлении транзакции:", error);
       });
   };
-  
 
   return (
     <div className="p-4">
@@ -79,7 +78,16 @@ const AddTransaction = ({ onAdd }) => {
             type="text"
             className="border p-2 w-full"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}  // Обработчик для поля описания
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+        <div className="mb-2">
+          <label className="block mb-1">Дата</label>
+          <input
+            type="date"
+            className="border p-2 w-full"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
           />
         </div>
         <button type="submit" className="bg-blue-500 text-white p-2 w-full rounded-lg">
