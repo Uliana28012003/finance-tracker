@@ -5,29 +5,40 @@ const AddTransaction = ({ onAdd }) => {
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("expense");
+  const [description, setDescription] = useState("");  // Добавляем состояние для описания
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+  
+    const token = localStorage.getItem("token");
+  
     const newTransaction = {
       category,
       amount: parseFloat(amount),
       type,
-      date: new Date().toISOString(),  // Добавил текущую дату
+      description,  // Обязательно передаем описание
+      date: new Date().toISOString(),  // Добавляем текущую дату
     };
-
+  
+    console.log('Отправляемая транзакция:', newTransaction); // Добавь это для отладки
+  
     axios
-      .post("http://localhost:5000/transaction", newTransaction)
+      .post("http://localhost:5000/transactions", newTransaction, {
+        headers: {
+          Authorization: `Bearer ${token}`,  // Добавляем токен в заголовок
+        },
+      })
       .then((response) => {
-        onAdd(response.data.transaction); // Обновление списка транзакций
-        setCategory(""); // Очистка поля категории
-        setAmount(""); // Очистка поля суммы
-        setType("expense"); // Возврат типа по умолчанию
+        onAdd(response.data.transaction);
+        setCategory("");
+        setAmount("");
+        setDescription("");  // Очищаем поле описания
       })
       .catch((error) => {
         console.error("Ошибка при добавлении транзакции:", error);
       });
   };
+  
 
   return (
     <div className="p-4">
@@ -61,6 +72,15 @@ const AddTransaction = ({ onAdd }) => {
             <option value="expense">Расход</option>
             <option value="income">Доход</option>
           </select>
+        </div>
+        <div className="mb-2">
+          <label className="block mb-1">Описание</label>
+          <input
+            type="text"
+            className="border p-2 w-full"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}  // Обработчик для поля описания
+          />
         </div>
         <button type="submit" className="bg-blue-500 text-white p-2 w-full rounded-lg">
           Добавить транзакцию

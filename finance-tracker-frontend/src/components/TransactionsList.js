@@ -6,9 +6,23 @@ const TransactionsList = ({ transactions, onDelete }) => {
         {transactions.length > 0 ? (
           transactions.map((transaction) => (
             <li key={transaction.id} className="flex justify-between items-center mb-2 p-2 border-b">
-              <span>
-                {transaction.category} — {transaction.amount} ₽ ({transaction.type})
-              </span>
+              <div className="flex flex-col">
+                <span>
+                  <strong>Категория:</strong> {transaction.category}
+                </span>
+                <span>
+                  <strong>Сумма:</strong> {transaction.amount} ₽
+                </span>
+                <span>
+                  <strong>Тип:</strong> {transaction.type === 'expense' ? 'Расход' : 'Доход'}
+                </span>
+                <span>
+                  <strong>Описание:</strong> {transaction.description || 'Нет описания'}
+                </span>
+                <span>
+                  <strong>Дата:</strong> {new Date(transaction.date).toLocaleDateString()}
+                </span>
+              </div>
               <button
                 className="bg-red-500 text-white p-1 rounded-lg"
                 onClick={() => onDelete(transaction.id)}
