@@ -99,10 +99,17 @@ app.post("/login", (req, res) => {
       }
 
       const token = jwt.sign({ userId: user.id, username: user.username }, SECRET_KEY, { expiresIn: "1h" });
-      res.status(200).json({ message: "Вход выполнен успешно!", token });
+
+      // Возвращаем имя пользователя и токен
+      res.status(200).json({ 
+        message: "Вход выполнен успешно!", 
+        token,
+        username: user.username  // Возвращаем имя пользователя
+      });
     });
   });
 });
+
 
 // Middleware для проверки токена
 const authenticateToken = (req, res, next) => {

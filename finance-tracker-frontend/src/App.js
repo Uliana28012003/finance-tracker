@@ -8,10 +8,8 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loginError, setLoginError] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false); // Для переключения форм
 
-  // Проверяем токен при загрузке приложения
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -24,38 +22,45 @@ function App() {
           setUser(response.data.user);
         })
         .catch(() => {
-          logout(); // Разлогиниваем, если токен невалиден
+          setIsAuthenticated(false);
+          setUser(null);
         });
     }
   }, []);
 
-  // Функция входа
-  const login = () => {
+  const login = (username, password) => {
     setLoginError("");
     axios
       .post("http://localhost:5000/login", { username, password })
       .then((response) => {
         localStorage.setItem("token", response.data.token);
         setIsAuthenticated(true);
-        setUser(response.data.user);
-        setUsername("");
-        setPassword("");
+        setUser({ username: response.data.username });
       })
-      .catch((error) => {
+      .catch(() => {
         setLoginError("Ошибка входа: Неверное имя пользователя или пароль");
-        console.error("Ошибка входа:", error);
       });
   };
 
-  // Функция выхода
+  const register = (username, password) => {
+    setLoginError("");
+    axios
+      .post("http://localhost:5000/register", { username, password })
+      .then(() => {
+        alert("Регистрация успешна! Теперь войдите в систему.");
+        setIsRegistering(false);
+      })
+      .catch(() => {
+        setLoginError("Ошибка регистрации: Пользователь уже существует");
+      });
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     setIsAuthenticated(false);
     setUser(null);
-    setTransactions([]);
   };
 
-  // Загружаем список транзакций, если пользователь авторизован
   useEffect(() => {
     if (isAuthenticated) {
       axios
@@ -67,42 +72,30 @@ function App() {
         })
         .catch((error) => {
           console.error("Ошибка при получении транзакций:", error);
-          if (error.response?.status === 401) {
-            logout(); // Автоматический выход при просроченном токене
-          }
         });
     }
   }, [isAuthenticated]);
 
+  const handleAddTransaction = (newTransaction) => {
+    axios
+      .post("http://localhost:5000/transactions", newTransaction, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      })
+      .then((response) => {
+        setTransactions((prev) => [...prev, response.data]);
+      })
+      .catch((error) => {
+        console.error("Ошибка при добавлении транзакции:", error);
+      });
+  };
 
-// Добавление транзакции
-const handleAddTransaction = (newTransaction) => {
-  console.log("Данные для отправки на сервер:", newTransaction);  // Логируем перед отправкой
-
-  axios
-    .post("http://localhost:5000/transactions", newTransaction, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      "Content-Type": "application/json",
-    })
-    .then((response) => {
-      console.log("Транзакция добавлена:", response.data);  // Логируем успешный ответ сервера
-      setTransactions((prevTransactions) => [...prevTransactions, response.data.transaction]);
-    })
-    .catch((error) => {
-      console.error("Ошибка при добавлении транзакции:", error);  // Логируем ошибку
-    });
-};
-
-  
-
-  // Удаление транзакции
   const handleDeleteTransaction = (id) => {
     axios
       .delete(`http://localhost:5000/transactions/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
       .then(() => {
-        setTransactions((prevTransactions) => prevTransactions.filter((transaction) => transaction.id !== id));
+        setTransactions((prev) => prev.filter((transaction) => transaction.id !== id));
       })
       .catch((error) => {
         console.error("Ошибка при удалении транзакции:", error);
@@ -110,41 +103,100 @@ const handleAddTransaction = (newTransaction) => {
   };
 
   return (
-    <div className="App">
-      <h1 className="text-2xl font-bold text-center mt-4">Finance Tracker</h1>
+    <div className="App min-h-screen bg-gray-100 flex justify-center items-center">
+      <div className="w-full max-w-4xl bg-white p-6 rounded-lg shadow-lg">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-700">Finance Tracker</h1>
 
-      {isAuthenticated ? (
-        <>
-          <p>Добро пожаловать, {user?.username || "пользователь"}!</p>
-          <button onClick={logout} className="bg-red-500 text-white px-4 py-2">
-            Выйти
-          </button>
-          <AddTransaction onAdd={handleAddTransaction} />
-          <TransactionsList transactions={transactions} onDelete={handleDeleteTransaction} />
-        </>
-      ) : (
-        <div className="login-form">
-          <h2>Войти в систему</h2>
-          {loginError && <p className="text-red-500">{loginError}</p>}
-          <input
-            type="text"
-            placeholder="Имя пользователя"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="border p-2 mb-2"
-          />
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="border p-2 mb-2"
-          />
-          <button onClick={login} className="bg-blue-500 text-white px-4 py-2">
-            Войти
-          </button>
-        </div>
-      )}
+        {isAuthenticated ? (
+          <>
+            <p className="text-center text-lg">Добро пожаловать, {user?.username || "гость"}!</p>
+            <button onClick={logout} className="bg-red-500 text-white w-full py-2 mt-4 rounded-lg">
+              Выйти
+            </button>
+
+            {/* Блок с транзакциями и добавлением */}
+            <div className="mt-6">
+              <AddTransaction onAdd={handleAddTransaction} />
+            </div>
+            <div className="mt-6">
+              <TransactionsList transactions={transactions} onDelete={handleDeleteTransaction} />
+            </div>
+          </>
+        ) : (
+          <div className="auth-container">
+            <h2 className="text-xl font-semibold text-center mb-4">{isRegistering ? "Регистрация" : "Вход в систему"}</h2>
+            {loginError && <p className="text-red-500 text-center mb-4">{loginError}</p>}
+
+            {!isRegistering ? (
+              // Форма входа
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Логин"
+                  id="login-username"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="password"
+                  placeholder="Пароль"
+                  id="login-password"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={() =>
+                    login(
+                      document.getElementById("login-username").value,
+                      document.getElementById("login-password").value
+                    )
+                  }
+                  className="w-full bg-blue-500 text-white py-2 rounded-lg mt-3"
+                >
+                  Войти
+                </button>
+                <p className="text-center text-sm">
+                  Вы не зарегистрированы?{" "}
+                  <button className="text-blue-500 underline" onClick={() => setIsRegistering(true)}>
+                    Зарегистрироваться
+                  </button>
+                </p>
+              </div>
+            ) : (
+              // Форма регистрации
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Логин"
+                  id="register-username"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+                <input
+                  type="password"
+                  placeholder="Пароль"
+                  id="register-password"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+                <button
+                  onClick={() =>
+                    register(
+                      document.getElementById("register-username").value,
+                      document.getElementById("register-password").value
+                    )
+                  }
+                  className="w-full bg-green-500 text-white py-2 rounded-lg mt-3"
+                >
+                  Зарегистрироваться
+                </button>
+                <p className="text-center text-sm">
+                  Уже есть аккаунт?{" "}
+                  <button className="text-blue-500 underline" onClick={() => setIsRegistering(false)}>
+                    Войти
+                  </button>
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState(""); // Используем username вместо email
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
@@ -13,14 +13,14 @@ export default function Login() {
       const response = await fetch("http://localhost:5000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }), // Отправляем username, а не email
       });
-      
+
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Ошибка входа");
 
       localStorage.setItem("token", data.token);
-      window.location.href = "/dashboard";
+      window.location.href = "/dashboard"; // Переход на главную страницу
     } catch (err) {
       setError(err.message);
     }
@@ -32,10 +32,10 @@ export default function Login() {
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-80">
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
         <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text" // Теперь это поле для имени пользователя (username)
+          placeholder="Имя пользователя"
+          value={username} // Используем username
+          onChange={(e) => setUsername(e.target.value)} // Обновляем username
           className="w-full p-2 border rounded mb-2"
           required
         />
