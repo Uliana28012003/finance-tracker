@@ -6,7 +6,10 @@ const AddTransaction = ({ onAdd }) => {
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("expense");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState(""); // Добавляем состояние для даты
+  const [date, setDate] = useState("");
+
+  // Список предопределённых категорий
+  const categories = ["Продукты", "Стипендия", "Одежда", "Здоровье", "Транспорт", "Развлечения", "Зарплата", "Другое"];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -18,7 +21,7 @@ const AddTransaction = ({ onAdd }) => {
       amount: parseFloat(amount),
       type,
       description,
-      date, // Используем введённую дату
+      date,
     };
   
     console.log("Отправляемая транзакция:", newTransaction);
@@ -32,7 +35,7 @@ const AddTransaction = ({ onAdd }) => {
         setCategory("");
         setAmount("");
         setDescription("");
-        setDate(""); // Очищаем поле даты
+        setDate("");
       })
       .catch((error) => {
         console.error("Ошибка при добавлении транзакции:", error);
@@ -45,12 +48,16 @@ const AddTransaction = ({ onAdd }) => {
       <form onSubmit={handleSubmit}>
         <div className="mb-2">
           <label className="block mb-1">Категория</label>
-          <input
-            type="text"
+          <select
             className="border p-2 w-full"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-          />
+          >
+            <option value="">Выберите категорию</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
         </div>
         <div className="mb-2">
           <label className="block mb-1">Сумма</label>
