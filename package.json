@@ -1,9 +1,9 @@
 {
-  "name": "finance-tracker-backend", 
+  "name": "finance-tracker-backend",
   "version": "1.0.0",
-  "main": "index.js",  
+  "main": "index.js",
   "scripts": {
-    "start": "node index.js",  
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -12,6 +12,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
+    "react-icons": "^5.5.0",
     "sqlite3": "^5.1.7",
     "tailwindcss": "^3.4.17"
   }

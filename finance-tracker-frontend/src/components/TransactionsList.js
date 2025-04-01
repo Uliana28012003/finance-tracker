@@ -1,37 +1,51 @@
 import { useState } from "react";
+import { FaSortAmountDown, FaSortAmountUp } from "react-icons/fa";
 
 const TransactionsList = ({ transactions, onDelete }) => {
-  // Состояние для фильтрации по категориям и типу (доход/расход)
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
+  const [sortField, setSortField] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
 
-  // Получаем уникальные категории из списка транзакций
   const categories = [
     "all",
     ...new Set(transactions.map((transaction) => transaction.category)),
   ];
 
-  // Фильтруем транзакции по выбранной категории и типу
   const filteredTransactions = transactions.filter((transaction) => {
-    const categoryMatch = selectedCategory === "all" || transaction.category === selectedCategory;
-    const typeMatch = selectedType === "all" || transaction.type === selectedType;
-    return categoryMatch && typeMatch;
+    return (
+      (selectedCategory === "all" || transaction.category === selectedCategory) &&
+      (selectedType === "all" || transaction.type === selectedType)
+    );
   });
 
-  // Сортировка транзакций по дате (от новых к старым)
-  const sortedTransactions = [...filteredTransactions].sort(
-    (a, b) => new Date(b.date) - new Date(a.date)
-  );
+  const sortedTransactions = [...filteredTransactions].sort((a, b) => {
+    if (sortField === "date") {
+      return sortOrder === "asc"
+        ? new Date(a.date) - new Date(b.date)
+        : new Date(b.date) - new Date(a.date);
+    } else if (sortField === "amount") {
+      return sortOrder === "asc" ? a.amount - b.amount : b.amount - a.amount;
+    }
+    return 0;
+  });
+
+  const toggleSortOrder = (field) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("desc");
+    }
+  };
 
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Список транзакций</h2>
 
-      {/* Фильтр по категориям */}
-      <div className="mb-4">
-        <label className="block mb-1">Фильтр по категории:</label>
+      <div className="flex gap-4 mb-4">
         <select
-          className="border p-2 w-full"
+          className="border p-2 rounded"
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
         >
@@ -41,13 +55,9 @@ const TransactionsList = ({ transactions, onDelete }) => {
             </option>
           ))}
         </select>
-      </div>
 
-      {/* Фильтр по типу (доход/расход) */}
-      <div className="mb-4">
-        <label className="block mb-1">Фильтр по типу:</label>
         <select
-          className="border p-2 w-full"
+          className="border p-2 rounded"
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
         >
@@ -55,6 +65,20 @@ const TransactionsList = ({ transactions, onDelete }) => {
           <option value="income">Доход</option>
           <option value="expense">Расход</option>
         </select>
+
+        <button
+          className="border p-2 rounded flex items-center"
+          onClick={() => toggleSortOrder("date")}
+        >
+          Дата {sortField === "date" && (sortOrder === "asc" ? <FaSortAmountUp /> : <FaSortAmountDown />)}
+        </button>
+
+        <button
+          className="border p-2 rounded flex items-center"
+          onClick={() => toggleSortOrder("amount")}
+        >
+          Сумма {sortField === "amount" && (sortOrder === "asc" ? <FaSortAmountUp /> : <FaSortAmountDown />)}
+        </button>
       </div>
 
       <ul className="border p-4 rounded-lg">
@@ -72,21 +96,21 @@ const TransactionsList = ({ transactions, onDelete }) => {
                   <strong>Сумма:</strong>
                   <span
                     className={
-                      transaction.type === 'expense' ? 'text-red-500' : 'text-green-500'
+                      transaction.type === "expense" ? "text-red-500" : "text-green-500"
                     }
                   >
                     {' '}
-                    {transaction.amount} ₽
+                    {transaction.amount.toLocaleString()} ₽
                   </span>
                 </span>
                 <span>
-                  <strong>Тип:</strong> {transaction.type === 'expense' ? 'Расход' : 'Доход'}
+                  <strong>Тип:</strong> {transaction.type === "expense" ? "Расход" : "Доход"}
                 </span>
                 <span>
-                  <strong>Описание:</strong> {transaction.description || 'Нет описания'}
+                  <strong>Описание:</strong> {transaction.description || "Нет описания"}
                 </span>
                 <span>
-                  <strong>Дата:</strong> {new Date(transaction.date).toLocaleDateString()}
+                  <strong>Дата:</strong> {new Date(transaction.date).toLocaleDateString("ru-RU")}
                 </span>
               </div>
               <button
