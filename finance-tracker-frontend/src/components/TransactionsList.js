@@ -1,8 +1,9 @@
 import { useState } from "react";
 
 const TransactionsList = ({ transactions, onDelete }) => {
-  // Состояние для фильтрации по категориям
+  // Состояние для фильтрации по категориям и типу (доход/расход)
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
 
   // Получаем уникальные категории из списка транзакций
   const categories = [
@@ -10,11 +11,12 @@ const TransactionsList = ({ transactions, onDelete }) => {
     ...new Set(transactions.map((transaction) => transaction.category)),
   ];
 
-  // Фильтруем транзакции по выбранной категории
-  const filteredTransactions =
-    selectedCategory === "all"
-      ? transactions
-      : transactions.filter((transaction) => transaction.category === selectedCategory);
+  // Фильтруем транзакции по выбранной категории и типу
+  const filteredTransactions = transactions.filter((transaction) => {
+    const categoryMatch = selectedCategory === "all" || transaction.category === selectedCategory;
+    const typeMatch = selectedType === "all" || transaction.type === selectedType;
+    return categoryMatch && typeMatch;
+  });
 
   // Сортировка транзакций по дате (от новых к старым)
   const sortedTransactions = [...filteredTransactions].sort(
@@ -38,6 +40,20 @@ const TransactionsList = ({ transactions, onDelete }) => {
               {category}
             </option>
           ))}
+        </select>
+      </div>
+
+      {/* Фильтр по типу (доход/расход) */}
+      <div className="mb-4">
+        <label className="block mb-1">Фильтр по типу:</label>
+        <select
+          className="border p-2 w-full"
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+        >
+          <option value="all">Все</option>
+          <option value="income">Доход</option>
+          <option value="expense">Расход</option>
         </select>
       </div>
 
