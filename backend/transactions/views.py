@@ -4,8 +4,14 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework.permissions import AllowAny
 
-from .models import Transaction
-from .serializers import TransactionSerializer
+from .models import Transaction, Category
+from .serializers import TransactionSerializer, CategorySerializer
+from rest_framework import viewsets, permissions
+
+class CategoryViewSet(viewsets.ModelViewSet):  # обязательно ModelViewSet!
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class TransactionViewSet(viewsets.ModelViewSet):

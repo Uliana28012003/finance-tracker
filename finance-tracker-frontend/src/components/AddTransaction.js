@@ -1,71 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import AddCategory from "./AddCategory";
 
 const AddTransaction = ({ onAdd }) => {
-  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [categoryId, setCategoryId] = useState("");
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("expense");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
 
-  const categories = [
-    "Продукты",
-    "Стипендия",
-    "Одежда",
-    "Здоровье",
-    "Транспорт",
-    "Развлечения",
-    "Зарплата",
-    "Другое",
-  ];
+  // Загружаем категории
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    axios
+      .get("http://localhost:8000/api/categories/", {
+        headers: { Authorization: `Token ${token}` },
+      })
+      .then((res) => setCategories(res.data))
+      .catch((err) => console.error("Ошибка загрузки категорий:", err));
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const token = localStorage.getItem("token");
-
+  
     const newTransaction = {
-      category,
+      category_id: parseInt(categoryId), // 💥 обязательно число
       amount: parseFloat(amount),
       type,
       description,
       date,
     };
-
+  
+    console.log("🚀 Отправляем транзакцию:", newTransaction); // ✅ лог перед отправкой
+  
     axios
       .post("http://localhost:8000/api/transactions/", newTransaction, {
-        headers: {
-          Authorization: `Token ${token}`,
-        },
+        headers: { Authorization: `Token ${token}` },
       })
       .then((response) => {
-        onAdd(response.data);
-        setCategory("");
+        console.log("✅ Ответ от сервера:", response.data);
+        onAdd(newTransaction);
+        setCategoryId("");
         setAmount("");
         setDescription("");
         setDate("");
       })
       .catch((error) => {
-        console.error("Ошибка при добавлении транзакции:", error);
+        console.error("❌ Ошибка при добавлении транзакции:", error);
+        console.log("🔍 Ответ от сервера:", error.response?.data);
       });
   };
+  
 
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Добавить транзакцию</h2>
+
       <form onSubmit={handleSubmit}>
         <div className="mb-2">
           <label className="block mb-1">Категория</label>
           <select
             className="border p-2 w-full"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
             required
           >
             <option value="">Выберите категорию</option>
             {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
               </option>
             ))}
           </select>
@@ -122,6 +127,12 @@ const AddTransaction = ({ onAdd }) => {
           Добавить транзакцию
         </button>
       </form>
+
+      <div className="mt-6">
+        <AddCategory
+          onCategoryAdded={(newCat) => setCategories((prev) => [...prev, newCat])}
+        />
+      </div>
     </div>
   );
 };
