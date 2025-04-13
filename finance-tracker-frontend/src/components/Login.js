@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 export default function Login() {
-  const [username, setUsername] = useState(""); // Используем username вместо email
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
@@ -10,17 +10,17 @@ export default function Login() {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:5000/login", {
+      const response = await fetch("http://localhost:8000/api-token-auth/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }), // Отправляем username, а не email
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Ошибка входа");
+      if (!response.ok) throw new Error(data.non_field_errors?.[0] || "Ошибка входа");
 
       localStorage.setItem("token", data.token);
-      window.location.href = "/dashboard"; // Переход на главную страницу
+      window.location.href = "/"; // Перенаправление на главную или дашборд
     } catch (err) {
       setError(err.message);
     }
@@ -32,10 +32,10 @@ export default function Login() {
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-80">
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
         <input
-          type="text" // Теперь это поле для имени пользователя (username)
+          type="text"
           placeholder="Имя пользователя"
-          value={username} // Используем username
-          onChange={(e) => setUsername(e.target.value)} // Обновляем username
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           className="w-full p-2 border rounded mb-2"
           required
         />

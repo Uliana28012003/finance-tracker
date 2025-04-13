@@ -132,9 +132,18 @@ const authenticateToken = (req, res, next) => {
 
 // 🔄 Получение всех транзакций пользователя (защищенный маршрут)
 app.get("/transactions", authenticateToken, (req, res) => {
-  const userId = req.user.userId; // Получаем ID пользователя из токена
+  const userId = req.user.userId;
+  const { category } = req.query; // Получаем категорию из параметров запроса
 
-  db.all("SELECT * FROM transactions WHERE userId = ?", [userId], (err, rows) => {
+  let query = "SELECT * FROM transactions WHERE userId = ?";
+  let params = [userId];
+
+  if (category) {
+    query += " AND category = ?";
+    params.push(category);
+  }
+
+  db.all(query, params, (err, rows) => {
     if (err) {
       console.error("Ошибка при получении транзакций:", err.message);
       return res.status(500).json({ message: "Ошибка при получении транзакций", error: err.message });
@@ -142,6 +151,7 @@ app.get("/transactions", authenticateToken, (req, res) => {
     res.status(200).json({ transactions: rows });
   });
 });
+
 
 app.post("/transactions", authenticateToken, (req, res) => {
   console.log("Полученные данные:", req.body);  // Логируем полученные данные

@@ -8,14 +8,22 @@ const AddTransaction = ({ onAdd }) => {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
 
-  // Список предопределённых категорий
-  const categories = ["Продукты", "Стипендия", "Одежда", "Здоровье", "Транспорт", "Развлечения", "Зарплата", "Другое"];
+  const categories = [
+    "Продукты",
+    "Стипендия",
+    "Одежда",
+    "Здоровье",
+    "Транспорт",
+    "Развлечения",
+    "Зарплата",
+    "Другое",
+  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  
+
     const token = localStorage.getItem("token");
-  
+
     const newTransaction = {
       category,
       amount: parseFloat(amount),
@@ -23,15 +31,15 @@ const AddTransaction = ({ onAdd }) => {
       description,
       date,
     };
-  
-    console.log("Отправляемая транзакция:", newTransaction);
-  
+
     axios
-      .post("http://localhost:5000/transactions", newTransaction, {
-        headers: { Authorization: `Bearer ${token}` },
+      .post("http://localhost:8000/api/transactions/", newTransaction, {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
       })
       .then((response) => {
-        onAdd(response.data.transaction);
+        onAdd(response.data);
         setCategory("");
         setAmount("");
         setDescription("");
@@ -52,13 +60,17 @@ const AddTransaction = ({ onAdd }) => {
             className="border p-2 w-full"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            required
           >
             <option value="">Выберите категорию</option>
             {categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
             ))}
           </select>
         </div>
+
         <div className="mb-2">
           <label className="block mb-1">Сумма</label>
           <input
@@ -66,8 +78,10 @@ const AddTransaction = ({ onAdd }) => {
             className="border p-2 w-full"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
+            required
           />
         </div>
+
         <div className="mb-2">
           <label className="block mb-1">Тип</label>
           <select
@@ -79,6 +93,7 @@ const AddTransaction = ({ onAdd }) => {
             <option value="income">Доход</option>
           </select>
         </div>
+
         <div className="mb-2">
           <label className="block mb-1">Описание</label>
           <input
@@ -88,16 +103,22 @@ const AddTransaction = ({ onAdd }) => {
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-        <div className="mb-2">
+
+        <div className="mb-4">
           <label className="block mb-1">Дата</label>
           <input
             type="date"
             className="border p-2 w-full"
             value={date}
             onChange={(e) => setDate(e.target.value)}
+            required
           />
         </div>
-        <button type="submit" className="bg-blue-500 text-white p-2 w-full rounded-lg">
+
+        <button
+          type="submit"
+          className="bg-blue-500 text-white p-2 w-full rounded-lg"
+        >
           Добавить транзакцию
         </button>
       </form>

@@ -1,8 +1,8 @@
 // auth.js
-const API_URL = "http://localhost:5000"; // Адрес бэкенда
+const API_URL = "http://localhost:8000"; // Django backend
 
 export async function login(username, password) {
-  const response = await fetch(`${API_URL}/login`, {
+  const response = await fetch(`${API_URL}/api-token-auth/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -11,17 +11,17 @@ export async function login(username, password) {
   });
 
   const data = await response.json();
-  
+
   if (response.ok) {
-    localStorage.setItem("token", data.token); // Сохраняем токен
+    localStorage.setItem("token", data.token); // сохраняем токен
     return data;
   } else {
-    throw new Error(data.message);
+    throw new Error("Ошибка входа: Неверные данные");
   }
 }
 
 export async function register(username, password) {
-  const response = await fetch(`${API_URL}/register`, {
+  const response = await fetch(`${API_URL}/api/register/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -32,9 +32,9 @@ export async function register(username, password) {
   const data = await response.json();
 
   if (response.ok) {
-    return data; // Возвращаем данные, но токен пока не сохраняем
+    return data;
   } else {
-    throw new Error(data.message);
+    throw new Error("Ошибка регистрации: пользователь уже существует");
   }
 }
 
@@ -48,9 +48,9 @@ export function getToken() {
 
 export async function fetchProtectedData() {
   const token = getToken();
-  const response = await fetch(`${API_URL}/protected`, {
+  const response = await fetch(`${API_URL}/api/transactions/`, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Token ${token}`,
     },
   });
 
