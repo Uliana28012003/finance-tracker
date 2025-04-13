@@ -125,10 +125,11 @@ function App() {
             </button>
 
             <div className="mt-6">
-              {/* ✅ Добавление категории и транзакции — по одному разу */}
+              {/* Только один раз отображаем AddCategory и AddTransaction */}
               <AddCategory onAdd={handleAddCategory} />
               <AddTransaction onAdd={handleAddTransaction} categories={categories} />
             </div>
+
             <div className="mt-6">
               <TransactionsList transactions={transactions} onDelete={handleDeleteTransaction} />
             </div>

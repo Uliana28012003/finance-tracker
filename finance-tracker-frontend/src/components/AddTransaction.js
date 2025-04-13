@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import AddCategory from "./AddCategory";
 
 const AddTransaction = ({ onAdd }) => {
   const [categories, setCategories] = useState([]);
@@ -24,17 +23,17 @@ const AddTransaction = ({ onAdd }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-  
+
     const newTransaction = {
-      category_id: parseInt(categoryId), // 💥 обязательно число
+      category_id: parseInt(categoryId),
       amount: parseFloat(amount),
       type,
       description,
       date,
     };
-  
-    console.log("🚀 Отправляем транзакцию:", newTransaction); // ✅ лог перед отправкой
-  
+
+    console.log("🚀 Отправляем транзакцию:", newTransaction);
+
     axios
       .post("http://localhost:8000/api/transactions/", newTransaction, {
         headers: { Authorization: `Token ${token}` },
@@ -52,7 +51,6 @@ const AddTransaction = ({ onAdd }) => {
         console.log("🔍 Ответ от сервера:", error.response?.data);
       });
   };
-  
 
   return (
     <div className="p-4">
@@ -127,12 +125,6 @@ const AddTransaction = ({ onAdd }) => {
           Добавить транзакцию
         </button>
       </form>
-
-      <div className="mt-6">
-        <AddCategory
-          onCategoryAdded={(newCat) => setCategories((prev) => [...prev, newCat])}
-        />
-      </div>
     </div>
   );
 };
